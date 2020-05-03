@@ -8,25 +8,29 @@
 
 {-# OPTIONS --without-K --safe #-}
 
-open import Relation.Binary
+open import Relation.Binary.Core
 
-module Function.Structures
-  {a b ℓ₁ ℓ₂} {A : Set a} {B : Set b} (_≈₁_ : Rel A ℓ₁) (_≈₂_ : Rel B ℓ₂)
+module Function.Structures {a b ℓ₁ ℓ₂}
+  {A : Set a} (_≈₁_ : Rel A ℓ₁) -- Equality over the domain
+  {B : Set b} (_≈₂_ : Rel B ℓ₂) -- Equality over the codomain
   where
 
 open import Data.Product using (∃; _×_; _,_)
 open import Function.Base
 open import Function.Definitions
 open import Level using (_⊔_)
+import Relation.Binary.Structures as B
+open import Relation.Binary.Bundles
 
 ------------------------------------------------------------------------
--- Definitions
+-- One element structures
+------------------------------------------------------------------------
 
 record IsCongruent (f : A → B) : Set (a ⊔ b ⊔ ℓ₁ ⊔ ℓ₂) where
   field
     cong           : Congruent _≈₁_ _≈₂_ f
-    isEquivalence₁ : IsEquivalence _≈₁_
-    isEquivalence₂ : IsEquivalence _≈₂_
+    isEquivalence₁ : B.IsEquivalence _≈₁_
+    isEquivalence₂ : B.IsEquivalence _≈₂_
 
   module Eq₁ where
 
@@ -80,6 +84,19 @@ record IsBijection (f : A → B) : Set (a ⊔ b ⊔ ℓ₁ ⊔ ℓ₂) where
     }
 
 
+------------------------------------------------------------------------
+-- Two element structures
+------------------------------------------------------------------------
+
+record IsEquivalence (f : A → B) (g : B → A) : Set (a ⊔ b ⊔ ℓ₁ ⊔ ℓ₂) where
+  field
+    isCongruent : IsCongruent f
+    cong₂       : Congruent _≈₂_ _≈₁_ g
+
+  open IsCongruent isCongruent public
+    renaming (cong to cong₁)
+
+
 record IsLeftInverse (f : A → B) (g : B → A) : Set (a ⊔ b ⊔ ℓ₁ ⊔ ℓ₂) where
   field
     isCongruent  : IsCongruent f
@@ -99,28 +116,6 @@ record IsRightInverse (f : A → B) (g : B → A) : Set (a ⊔ b ⊔ ℓ₁ ⊔ 
   open IsCongruent isCongruent public
     renaming (cong to cong₁)
 
-record IsBiEquivalence
-  (f : A → B) (g₁ : B → A) (g₂ : B → A) : Set (a ⊔ b ⊔ ℓ₁ ⊔ ℓ₂) where
-  field
-    f-isCongruent : IsCongruent f
-    cong₂         : Congruent _≈₂_ _≈₁_ g₁
-    cong₃         : Congruent _≈₂_ _≈₁_ g₂
-
-  open IsCongruent f-isCongruent public
-    renaming (cong to cong₁)
-
-record IsBiInverse
-  (f : A → B) (g₁ : B → A) (g₂ : B → A) : Set (a ⊔ b ⊔ ℓ₁ ⊔ ℓ₂) where
-  field
-    f-isCongruent : IsCongruent f
-    cong₂         : Congruent _≈₂_ _≈₁_ g₁
-    inverseˡ      : Inverseˡ _≈₁_ _≈₂_ f g₁
-    cong₃         : Congruent _≈₂_ _≈₁_ g₂
-    inverseʳ      : Inverseʳ _≈₁_ _≈₂_ f g₂
-
-  open IsCongruent f-isCongruent public
-    renaming (cong to cong₁)
-
 
 record IsInverse (f : A → B) (g : B → A) : Set (a ⊔ b ⊔ ℓ₁ ⊔ ℓ₂) where
   field
@@ -138,3 +133,31 @@ record IsInverse (f : A → B) (g : B → A) : Set (a ⊔ b ⊔ ℓ₁ ⊔ ℓ�
 
   inverse : Inverseᵇ _≈₁_ _≈₂_ f g
   inverse = inverseˡ , inverseʳ
+
+
+------------------------------------------------------------------------
+-- Three element structures
+------------------------------------------------------------------------
+
+record IsBiEquivalence
+  (f : A → B) (g₁ : B → A) (g₂ : B → A) : Set (a ⊔ b ⊔ ℓ₁ ⊔ ℓ₂) where
+  field
+    f-isCongruent : IsCongruent f
+    cong₂         : Congruent _≈₂_ _≈₁_ g₁
+    cong₃         : Congruent _≈₂_ _≈₁_ g₂
+
+  open IsCongruent f-isCongruent public
+    renaming (cong to cong₁)
+
+
+record IsBiInverse
+  (f : A → B) (g₁ : B → A) (g₂ : B → A) : Set (a ⊔ b ⊔ ℓ₁ ⊔ ℓ₂) where
+  field
+    f-isCongruent : IsCongruent f
+    cong₂         : Congruent _≈₂_ _≈₁_ g₁
+    inverseˡ      : Inverseˡ _≈₁_ _≈₂_ f g₁
+    cong₃         : Congruent _≈₂_ _≈₁_ g₂
+    inverseʳ      : Inverseʳ _≈₁_ _≈₂_ f g₂
+
+  open IsCongruent f-isCongruent public
+    renaming (cong to cong₁)

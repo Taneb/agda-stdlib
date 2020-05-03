@@ -18,6 +18,17 @@ Bug-fixes
 Non-backwards compatible changes
 --------------------------------
 
+* Not strictly non-backwards compatible, but a new record `IsEquivalence` has
+been added to `Function.Structures` which may clash with `IsEquivalence` from
+`Relation.Binary.Structures` if both modules are imported. If you are not yet
+using the new function hierarchy then the easiest way of fixing this is simply to
+replace every use of the module `Function` with the module `Function.Base`.
+On Linux-based operating systems this can be done by running the following
+command at the  root of your project:
+  ```
+  find . -type f -name "*.agda" -print0 | xargs -0 sed -i '' -e 's/import Function/import Function.Base/g'```
+  ```
+
 Deprecated modules
 ------------------
 
@@ -179,4 +190,28 @@ Other minor additions
   negative    : p < 0ℚᵘ → Negative p
   nonPositive : p ≤ 0ℚᵘ → NonPositive p
   nonNegative : p ≥ 0ℚᵘ → NonNegative p
+  ```
+
+* Added new definitions to `Function.Bundles`:
+  ```agda
+  record Func : Set _
+  _⟶_ : Set a → Set b → Set _
+  mk⟶ : (A → B) → A ⟶ B
+  ```
+
+* Added new definitions to `Function.Structures`:
+  ```agda
+  record IsEquivalence : Set _
+  ```
+
+* Added new proofs to `Function.Construct.Composition`:
+  ```agda
+  function : Func R S → Func S T → Func R T
+  _∘-⟶_    : (A ⟶ B) → (B ⟶ C) → (A ⟶ C)
+  ```
+
+* Added new proofs to `Function.Construct.Identity`:
+  ```agda
+  function : Func S S
+  id-⟶     : A ⟶ A
   ```
