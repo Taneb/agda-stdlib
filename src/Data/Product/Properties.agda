@@ -9,7 +9,7 @@
 module Data.Product.Properties where
 
 open import Data.Product
-open import Function using (_∘_)
+open import Function.Base using (_∘_)
 open import Relation.Binary using (Decidable)
 open import Relation.Binary.PropositionalEquality
 open import Relation.Nullary.Product

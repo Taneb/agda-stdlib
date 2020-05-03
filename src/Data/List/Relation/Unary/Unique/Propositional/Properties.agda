@@ -17,7 +17,7 @@ open import Data.List.Relation.Unary.Unique.Propositional
 import Data.List.Relation.Unary.Unique.Setoid.Properties as Setoid
 open import Data.Nat.Base
 open import Data.Nat.Properties using (<⇒≢)
-open import Function using (id; _∘_)
+open import Function.Base using (id; _∘_)
 open import Relation.Binary using (Rel; Setoid)
 open import Relation.Binary.PropositionalEquality
   using (_≡_; _≢_; sym; setoid)

@@ -9,7 +9,7 @@
 module Relation.Binary.Construct.Closure.Symmetric where
 
 open import Data.Sum.Base as Sum using (_⊎_)
-open import Function using (id)
+open import Function.Base using (id)
 open import Relation.Binary
 
 open Sum public using () renaming (inj₁ to fwd; inj₂ to bwd)
