@@ -41,7 +41,7 @@ open import Relation.Binary.Structures
   using (IsPreorder; IsPartialOrder; IsStrictPartialOrder; IsDecStrictPartialOrder)
 open import Relation.Binary.Bundles
   using (Preorder; Poset; StrictPartialOrder; DecStrictPartialOrder)
-open import Relation.Binary.Definitions as B hiding (Decidable; Empty)
+open import Relation.Binary.Definitions as B hiding (Decidable; Total; Empty)
 open import Relation.Binary.PropositionalEquality.Core
   using (_≡_; refl; cong; cong₂; subst; _≢_; sym)
 open import Relation.Binary.PropositionalEquality.Properties
@@ -120,6 +120,17 @@ _∈?_ : ∀ x (p : Subset n) → Dec (x ∈ p)
 zero  ∈? inside  ∷ p = yes here
 zero  ∈? outside ∷ p = no  λ()
 suc n ∈? s       ∷ p = Dec.map′ there drop-there (n ∈? p)
+
+------------------------------------------------------------------------
+-- Total
+
+drop-∷-Total : Total (s ∷ p) → Total p
+drop-∷-Total ∀∈ x with there p ← ∀∈ (suc x) = p
+
+Total-unique : Total p → p ≡ ⊤
+Total-unique {p = []} ∀∈ = refl
+Total-unique {p = outside ∷ p} ∀∈ with () ← ∀∈ zero
+Total-unique {p = inside ∷ p} ∀∈ = cong (inside ∷_) (Total-unique (drop-∷-Total ∀∈))
 
 ------------------------------------------------------------------------
 -- Empty
@@ -764,6 +775,27 @@ x∈p∪q⁺ (inj₂ x∈q) = q⊆p∪q _ _ x∈q
 ∣p∣⊔∣q∣≤∣p∪q∣ : ∀ (p q : Subset n) → ∣ p ∣ ⊔ ∣ q ∣ ≤ ∣ p ∪ q ∣
 ∣p∣⊔∣q∣≤∣p∪q∣ p q = ℕ.⊔-lub (∣p∣≤∣p∪q∣ p q) (∣q∣≤∣p∪q∣ p q)
 
+counting : ∀ (p q : Subset n) → ∣ p ∪ q ∣ ≡ ∣ p ∣ + ∣ q ∣ ∸ ∣ p ∩ q ∣
+counting [] [] = refl
+counting (outside ∷ p) (outside ∷ q) = counting p q
+counting (outside ∷ p) (inside ∷ q) = begin
+  suc ∣ p ∪ q ∣                   ≡⟨ cong suc (counting p q) ⟩
+  suc (∣ p ∣ + ∣ q ∣ ∸ ∣ p ∩ q ∣) ≡⟨ ℕ.+-∸-assoc 1 (ℕ.≤-trans (∣p∩q∣≤∣p∣⊓∣q∣ p q) (ℕ.m⊓n≤m+n ∣ p ∣ ∣ q ∣)) ⟨
+  suc (∣ p ∣ + ∣ q ∣) ∸ ∣ p ∩ q ∣ ≡⟨ cong (_∸ ∣ p ∩ q ∣) (ℕ.+-suc ∣ p ∣ ∣ q ∣) ⟨
+  ∣ p ∣ + suc ∣ q ∣ ∸ ∣ p ∩ q ∣   ∎
+  where open ≡-Reasoning
+counting (inside ∷ p) (outside ∷ q) = begin
+  suc ∣ p ∪ q ∣                   ≡⟨ cong suc (counting p q) ⟩
+  suc (∣ p ∣ + ∣ q ∣ ∸ ∣ p ∩ q ∣) ≡⟨ ℕ.+-∸-assoc 1 (ℕ.≤-trans (∣p∩q∣≤∣p∣⊓∣q∣ p q) (ℕ.m⊓n≤m+n ∣ p ∣ ∣ q ∣)) ⟨
+  suc (∣ p ∣ + ∣ q ∣) ∸ ∣ p ∩ q ∣ ∎
+  where open ≡-Reasoning
+counting (inside ∷ p) (inside ∷ q) = begin
+  suc ∣ p ∪ q ∣                   ≡⟨ cong suc (counting p q) ⟩
+  suc (∣ p ∣ + ∣ q ∣ ∸ ∣ p ∩ q ∣) ≡⟨ ℕ.+-∸-assoc 1 (ℕ.≤-trans (∣p∩q∣≤∣p∣⊓∣q∣ p q) (ℕ.m⊓n≤m+n ∣ p ∣ ∣ q ∣)) ⟨
+  suc (∣ p ∣ + ∣ q ∣) ∸ ∣ p ∩ q ∣ ≡⟨ cong (_∸ ∣ p ∩ q ∣) (ℕ.+-suc ∣ p ∣ ∣ q ∣) ⟨
+  ∣ p ∣ + suc ∣ q ∣ ∸ ∣ p ∩ q ∣   ∎
+  where open ≡-Reasoning
+
 ------------------------------------------------------------------------
 -- Properties of _─_
 
@@ -803,6 +835,10 @@ x∈p∧x∉q⇒x∈p─q {q = inside  ∷ q} here        i∉q = contradiction 
 x∈p∧x∉q⇒x∈p─q {q = outside ∷ q} (there i∈p) i∉q = there (x∈p∧x∉q⇒x∈p─q i∈p (i∉q ∘ there))
 x∈p∧x∉q⇒x∈p─q {q = inside  ∷ q} (there i∈p) i∉q = there (x∈p∧x∉q⇒x∈p─q i∈p (i∉q ∘ there))
 
+x∈p─q⁻ : ∀ (p q : Subset n) → x ∈ p ─ q → x ∈ p × x ∉ q
+x∈p─q⁻ {x = zero} (inside ∷ p) (outside ∷ q) here = here , λ ()
+x∈p─q⁻ {x = suc x} (_ ∷ p) (_ ∷ q) (there x∈p─q) = Product.map there (λ { x∉q (there x∈q) → x∉q x∈q }) (x∈p─q⁻ p q x∈p─q)
+
 p─q⊆p : ∀ (p q : Subset n) → p ─ q ⊆ p
 p─q⊆p (inside  ∷ p) (outside ∷ q) here        = here
 p─q⊆p (inside  ∷ p) (outside ∷ q) (there x∈p) = there (p─q⊆p p q x∈p)
@@ -814,6 +850,10 @@ p∩q≢∅⇒p─q⊂p (inside  ∷ p) (inside ∷ q)  (zero  , here)        = 
 p∩q≢∅⇒p─q⊂p (x       ∷ p) (inside ∷ q)  (suc i , there i∈p∩q) = out⊂ (p∩q≢∅⇒p─q⊂p p q (i , i∈p∩q))
 p∩q≢∅⇒p─q⊂p (outside ∷ p) (outside ∷ q) (suc i , there i∈p∩q) = out⊂ (p∩q≢∅⇒p─q⊂p p q (i , i∈p∩q))
 p∩q≢∅⇒p─q⊂p (inside  ∷ p) (outside ∷ q) (suc i , there i∈p∩q) = s⊂s  (p∩q≢∅⇒p─q⊂p p q (i , i∈p∩q))
+
+x∈p⇒x∉q─p : x ∈ p → x ∉ q ─ p
+x∈p⇒x∉q─p {x = zero} {p = inside ∷ _} {q = _ ∷ _} here ()
+x∈p⇒x∉q─p {x = suc _} {p = _ ∷ p} {q = _ ∷ q} (there x∈p) (there x∈q─p) = x∈p⇒x∉q─p x∈p x∈q─p
 
 ∣p─q∣≤∣p∣ : ∀ (p q : Subset n) → ∣ p ─ q ∣ ≤ ∣ p ∣
 ∣p─q∣≤∣p∣ p q = p⊆q⇒∣p∣≤∣q∣ (p─q⊆p p q)

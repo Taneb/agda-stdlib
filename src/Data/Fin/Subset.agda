@@ -123,6 +123,9 @@ p - x = p ─ ⁅ x ⁆
 ------------------------------------------------------------------------
 -- Properties
 
+Total : ∀ (p : Subset n) → Set
+Total p = ∀ f → f ∈ p
+
 Nonempty : ∀ (p : Subset n) → Set
 Nonempty p = ∃ λ f → f ∈ p
 
